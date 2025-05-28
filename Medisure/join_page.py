@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from openpyxl import load_workbook
+import bcrypt
 
 EXCEL_PATH = "USER_DOCS.xlsx"
 
@@ -22,8 +23,11 @@ def save_user():
                 messagebox.showerror("중복 오류", "이미 존재하는 ID입니다.")
                 return
 
+        # 비밀번호 해싱
+        hashed_password = hash_password(password)
+
         # 새 사용자 추가
-        ws.append([user_id, password])
+        ws.append([user_id, hashed_password])
         wb.save(EXCEL_PATH)
 
         messagebox.showinfo("가입 완료", "회원 가입이 완료 되었습니다.")
@@ -32,6 +36,11 @@ def save_user():
     except FileNotFoundError:
         print("오류")
 
+# 비밀번호 해싱
+def hash_password(plain_password):
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(plain_password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
 
 # GUI
 root = tk.Tk()
