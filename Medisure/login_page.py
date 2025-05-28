@@ -36,12 +36,6 @@ def check_login():
         print("Login Successful!")
         messagebox.showinfo("로그인 성공", "환영합니다!")
 
-# 비밀번호 해싱
-def hash_password(plain_password):
-    salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(plain_password.encode(), salt)
-    return hashed.decode()
-
 # 비밀번호 확인
 def check_password(plain_password, hashed_password):
     return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
