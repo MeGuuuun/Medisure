@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from openpyxl import load_workbook
+import bcrypt
 
 # 페이지 이동을 위한 subprocess
 import subprocess
@@ -29,13 +30,22 @@ def check_login():
 
     if user_id not in credentials:
         messagebox.showinfo("로그인 실패", "존재하지 않는 아이디 입니다.")
-    elif credentials[user_id] != password:
+    elif not check_password(password, credentials[user_id]):
         messagebox.showwarning("로그인 실패", "비밀번호가 틀렸습니다.")
     else :
         print("Login Successful!")
         messagebox.showinfo("로그인 성공", "환영합니다!")
 
-# 회원 가입 페이지 이동
+# 비밀번호 해싱
+def hash_password(plain_password):
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(plain_password.encode(), salt)
+    return hashed.decode()
+
+# 비밀번호 확인
+def check_password(plain_password, hashed_password):
+    return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
+
 def open_join_page():
     root.destroy()
     subprocess.run(["python3", "join_page.py"])
