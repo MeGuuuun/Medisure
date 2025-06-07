@@ -5,7 +5,7 @@ import json
 API_URL = "http://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList"
 SERVICE_KEY = "Dx6x0CDP8qOhtEgGvlcoAyU3AG1VHeH1v63tJvau8+AyPVrZS14+ifBJ35Oe60O28Gbj33VIbV/GGWggcOTn1Q=="
 
-def fetch_drug_info(drug_name):
+def fetch_pill_info(drug_name):
     params = {
         'serviceKey': SERVICE_KEY,
         'itemName': drug_name
