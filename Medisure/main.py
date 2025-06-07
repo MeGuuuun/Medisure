@@ -17,29 +17,35 @@ def main():
     default_window(root, 450, 650)
 
     # 나중에 프레임을 switch_frame에서 접근해야 하므로 미리 선언
-    login_frame = join_frame = main_page_frame = None
+    login_frame = join_frame = profile_frame = search_frame = None
 
     def switch_frame(target_frame):
-        for frame in (login_frame, join_frame, main_page_frame):
+        for frame in (login_frame, join_frame, profile_frame, search_frame):
             if frame is not None:
                 frame.pack_forget()
         target_frame.pack(pady=50)
+
+    def on_login_success(user_id):
+        nonlocal profile_frame
+        if profile_frame is not None:
+            profile_frame.destroy()
+        profile_frame = create_profile_frame(
+            root,
+            on_logout=lambda: switch_frame(login_frame),
+            user_id=user_id,
+        )
+        switch_frame(profile_frame)
 
     # 프레임 생성
     login_frame = create_login_frame(
         root,
         switch_to_join=lambda: switch_frame(join_frame),
-        on_login_success=lambda: switch_frame(main_page_frame)
+        on_login_success=on_login_success
     )
 
     join_frame = create_join_frame(
         root,
         switch_to_login=lambda: switch_frame(login_frame)
-    )
-
-    main_page_frame = create_profile_frame(
-        root,
-        on_logout=lambda: switch_frame(login_frame)
     )
 
     # 초기 화면: 로그인
