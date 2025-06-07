@@ -25,16 +25,22 @@ def main():
                 frame.pack_forget()
         target_frame.pack(pady=50)
 
-    # 프레임 생성
-    profile_frame = create_profile_frame(
-        root,
-        on_logout=lambda: switch_frame(login_frame)
-    )
+    def on_login_success(user_id):
+        nonlocal profile_frame
+        if profile_frame is not None:
+            profile_frame.destroy()
+        profile_frame = create_profile_frame(
+            root,
+            on_logout=lambda: switch_frame(login_frame),
+            user_id=user_id,
+        )
+        switch_frame(profile_frame)
 
+    # 프레임 생성
     login_frame = create_login_frame(
         root,
         switch_to_join=lambda: switch_frame(join_frame),
-        on_login_success=lambda: switch_frame(profile_frame)
+        on_login_success=on_login_success
     )
 
     join_frame = create_join_frame(
