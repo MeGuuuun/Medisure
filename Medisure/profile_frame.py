@@ -18,6 +18,12 @@ def load_user_info(user_id):
         print("엑셀 오류: ",e)
         return None
 
+def center_window(win):
+    win.update_idletasks()
+    x = (win.winfo_screenwidth() - win.winfo_width()) // 2
+    y = (win.winfo_screenheight() - win.winfo_height()) // 2
+    win.geometry(f"+{x}+{y}")
+
 def create_profile_frame(root, on_logout, user_id):
     frame = tk.Frame(root)
     user_info = load_user_info(user_id)
@@ -72,6 +78,8 @@ def create_profile_frame(root, on_logout, user_id):
         popup.transient(search_frame)
         popup.grab_set()
 
+        center_window(popup)
+
         scrollbar = tk.Scrollbar(popup)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
@@ -83,13 +91,18 @@ def create_profile_frame(root, on_logout, user_id):
 
         def on_select(event):
             if listbox.curselection():
-                selected = listbox.get(listbox.curselection())
+                index = listbox.curselection()[0]
+
+                # 선택된 항목 배경색 변경
+                listbox.itemconfig(index, bg="#d3d3d3")
+
+                selected = listbox.get(index)
                 print("선택한 약물 : ", selected)
-                popup.destroy()
+
+                # 5초 후 팝업 사라짐
+                popup.after(5000, popup.destroy())
 
         listbox.bind("<<ListboxSelect>>", on_select)
-
-
 
     tk.Button(search_frame, text="약물 검색 (콘솔 출력)", command=lambda:search_pill()).pack(pady=10)
 
