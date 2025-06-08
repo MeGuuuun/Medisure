@@ -60,13 +60,12 @@ def fetch_pill_caution_text(pill_name):
 
         if nb_doc_data is not None:
             for article in nb_doc_data.findall(".//ARTICLE"):
-                if article.get('title') == "7. 상호작용":
-                    for paragraph in article.findall(".//PARAGRAPH"):
-                        text_content = paragraph.text
-                        if text_content:
-                            text_content = text_content.replace('<BR>', '\n')
-                            interaction_paragraphs.append(text_content.strip())
-                    break
+                for paragraph in article.findall(".//PARAGRAPH"):
+                    text_content = paragraph.text
+                    if text_content:
+                        text_content = text_content.replace('<BR>', '\n').strip()
+                        interaction_paragraphs.append(text_content)
+
 
         return "\n".join(interaction_paragraphs)
 
