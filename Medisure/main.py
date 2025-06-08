@@ -14,7 +14,7 @@ def default_window(root, width, height):
 
 def main():
     root = tk.Tk()
-    root.title("Login System")
+    root.title("Medisure")
     default_window(root, 450, 650)
 
     profile_frame = login_frame = join_frame = interaction_frame = None
@@ -25,28 +25,33 @@ def main():
                 frame.pack_forget()
         target_frame.pack(pady=50)
 
-    def switch_to_interaction():
-        nonlocal interaction_frame
-        if interaction_frame is not None:
-            interaction_frame.destroy()
-        interaction_frame = create_interaction_frame(
-            root,
-            on_logout=lambda: switch_frame(login_frame),
-            switch_to_profile=on_login_success
-        )
-        switch_frame(interaction_frame)
+    def on_login_success(user_id):
+        nonlocal profile_frame, login_frame
 
-    def on_login_success():
-        nonlocal profile_frame
         if profile_frame is not None:
             profile_frame.destroy()
+
         profile_frame = create_profile_frame(
             root,
+            user_id,
             on_logout=lambda: switch_frame(login_frame),
-            switch_to_interaction=switch_to_interaction
+            switch_to_interaction=lambda uid=user_id: switch_to_interaction(uid)
         )
         switch_frame(profile_frame)
 
+    def switch_to_interaction(user_id):
+        nonlocal interaction_frame, profile_frame
+
+        if interaction_frame is not None:
+            interaction_frame.destroy()
+
+        interaction_frame = create_interaction_frame(
+            root,
+            user_id,
+            on_logout=lambda: switch_frame(login_frame),
+            back_to_profile=lambda uid=user_id:on_login_success(uid)
+        )
+        switch_frame(interaction_frame)
 
     # 프레임 생성
     login_frame = create_login_frame(

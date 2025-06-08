@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import messagebox
 from openpyxl import load_workbook
 from bcrypt_utils import check_password
-import app_state
 
 EXCEL_PATH = "USER_DOCS.xlsx"
 
@@ -42,8 +41,7 @@ def create_login_frame(root, switch_to_join, on_login_success):
             messagebox.showwarning("로그인 실패", "비밀번호가 틀렸습니다.")
         else:
             messagebox.showinfo("로그인 성공", f"{user_id}님 환영합니다!")
-            app_state.user_id = user_id
-            on_login_success()
+            on_login_success(user_id)
 
     tk.Button(frame, text="로그인", command=try_login).pack(pady=10)
     tk.Button(frame, text="회원가입", command=switch_to_join).pack()
