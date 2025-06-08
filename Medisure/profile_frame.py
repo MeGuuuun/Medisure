@@ -91,16 +91,15 @@ def create_profile_frame(root, on_logout, user_id):
 
         def on_select(event):
             if listbox.curselection():
-                index = listbox.curselection()[0]
-
-                # 선택된 항목 배경색 변경
-                listbox.itemconfig(index, bg="#d3d3d3")
-
-                selected = listbox.get(index)
+                selected = listbox.get(listbox.curselection())
                 print("선택한 약물 : ", selected)
 
-                # 5초 후 팝업 사라짐
-                popup.after(5000, popup.destroy())
+                # 배경색 바꾸기 (선택된 항목만)
+                index = listbox.curselection()[0]
+                listbox.itemconfig(index, bg="lightgray")
+
+                # 0.5초 딜레이 후 팝업 닫기
+                popup.after(500, popup.destroy)
 
         listbox.bind("<<ListboxSelect>>", on_select)
 
