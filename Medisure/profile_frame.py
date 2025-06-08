@@ -6,6 +6,8 @@ import app_state
 
 EXCEL_PATH = "USER_DOCS.xlsx"
 
+user_id = app_state.user_id
+
 def load_user_info(user_id):
     try:
         wb = load_workbook(EXCEL_PATH)
@@ -115,7 +117,7 @@ def refresh_pill_list(user_id, target_frame):
                                 bg='white', fg='black', relief='solid', bd=1, padx=5, pady=1)
             del_btn.pack(side='right', padx=(5, 0))
 
-def create_profile_frame(root, on_logout, user_id):
+def create_profile_frame(root, on_logout, switch_to_interaction):
     frame = tk.Frame(root)
     user_info = load_user_info(user_id)
 
@@ -207,8 +209,11 @@ def create_profile_frame(root, on_logout, user_id):
 
     # ==== 약물 정보 ====
 
-
     refresh_pill_list(user_id, bottom_frame)
+
+    # === 약물 상호작용 ====
+
+    tk.Button(bottom_frame, text="약물 상호작용 확인하기",command=switch_to_interaction)
 
     tk.Button(frame, text="로그아웃", command=on_logout).pack(pady=20)
 
