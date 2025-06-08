@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from openpyxl import load_workbook
 from data_fetcher import fetch_pill_info
+import app_state
 
 EXCEL_PATH = "USER_DOCS.xlsx"
 
@@ -23,6 +24,41 @@ def center_window(win):
     x = (win.winfo_screenwidth() - win.winfo_width()) // 2
     y = (win.winfo_screenheight() - win.winfo_height()) // 2
     win.geometry(f"+{x}+{y}")
+
+# 약물 추가 함수
+def add_selected_to_excel(selected):
+    try:
+        wb = load_workbook(EXCEL_PATH)
+    except Exception as e:
+        print("error")
+
+    ws = wb.active
+
+    id_col = 1
+    user_id = app_state.user_id
+
+    pill_cols = list(range(6,10))
+
+    target_row = None
+
+    for row in range(2, ws.max_row + 1):
+        cell_value = ws.cell(row=row, column=id_col).value
+        if cell_value == user_id:
+            target_row = row
+            break
+
+    inserted = False
+    for col in pill_cols:
+        if not ws.cell(row=target_row, column=col).value:
+            ws.cell(row=target_row, column=col, value=selected)
+            inserted = True
+            break
+
+    if not inserted:
+        print("⚠️ 더 이상 약물 정보를 추가할 공간이 없습니다.")
+
+    wb.save(EXCEL_PATH)
+
 
 def create_profile_frame(root, on_logout, user_id):
     frame = tk.Frame(root)
@@ -93,6 +129,9 @@ def create_profile_frame(root, on_logout, user_id):
             if listbox.curselection():
                 selected = listbox.get(listbox.curselection())
                 print("선택한 약물 : ", selected)
+
+                # 엑셀에 저장
+                add_selected_to_excel(selected)
 
                 # 배경색 바꾸기 (선택된 항목만)
                 index = listbox.curselection()[0]
