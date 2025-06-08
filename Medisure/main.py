@@ -17,7 +17,7 @@ def main():
     root.title("Login System")
     default_window(root, 450, 650)
 
-    profile_frame, login_frame, join_frame, interaction_frame = None
+    profile_frame = login_frame = join_frame = interaction_frame = None
 
     def switch_frame(target_frame):
         for frame in (login_frame, join_frame, profile_frame, interaction_frame):
