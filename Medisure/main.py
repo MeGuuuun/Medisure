@@ -16,11 +16,10 @@ def main():
     root.title("Login System")
     default_window(root, 450, 650)
 
-    # 나중에 프레임을 switch_frame에서 접근해야 하므로 미리 선언
-    login_frame = join_frame = profile_frame = search_frame = None
+    profile_frame = None
 
     def switch_frame(target_frame):
-        for frame in (login_frame, join_frame, profile_frame, search_frame):
+        for frame in (login_frame, join_frame, profile_frame ):
             if frame is not None:
                 frame.pack_forget()
         target_frame.pack(pady=50)
@@ -32,9 +31,10 @@ def main():
         profile_frame = create_profile_frame(
             root,
             on_logout=lambda: switch_frame(login_frame),
-            user_id=user_id,
+            switch_to_interaction=lambda: switch_frame(search_frame),
         )
         switch_frame(profile_frame)
+
 
     # 프레임 생성
     login_frame = create_login_frame(
