@@ -71,12 +71,49 @@ def refresh_pill_list(user_id, target_frame):
 
     user_info = load_user_info(user_id)
     user_pills = user_info[5:]
-    print(user_pills)
+
+    # 약물 삭제 함수
+    def delete_pill(pill_name):
+        wb = load_workbook(EXCEL_PATH)
+        ws = wb.active
+
+        row_index = None
+        for i, row in enumerate(ws.iter_rows(min_row=2, values_only=True),start=2):
+            if str(row[0]) == user_id:
+                row_index = i
+                break
+
+        if row_index is None:
+            wb.close()
+            print("error")
+            return
+
+        pills = [ws.cell(row=row_index, column=col).value for col in range(6,11)]
+
+        # 삭제할 약 제거하고 순서 당기기
+        pills = [pill for pill in pills if pill != pill_name]
+        while len(pills) < 5 :
+            pills.append(None)
+
+        for idx, pill in enumerate(pills):
+            ws.cell(row=row_index, column=5 + idx).value = pill
+
+        wb.save(EXCEL_PATH)
+        wb.close()
+
+        refresh_pill_list(user_id, target_frame)
 
     for pill in user_pills:
         if pill:
-            label = tk.Label(target_frame, text=f"- {pill}", anchor="w", bg="white")
-            label.pack(fill="x", padx=20, pady=2)
+            row_frame = tk.Frame(target_frame, bg='white')
+            row_frame.pack(fill='x', padx=20, pady=3)
+
+            label = tk.Label(row_frame, text=f"- {pill}", anchor="w", bg='white')
+            label.pack(side='left', fill='x', expand=True)
+
+            del_btn = tk.Button(row_frame, text="❌", command=lambda p=pill: delete_pill(p),
+                                bg='white', fg='black', relief='solid', bd=1, padx=5, pady=1)
+            del_btn.pack(side='right', padx=(5, 0))
 
 def create_profile_frame(root, on_logout, user_id):
     frame = tk.Frame(root)

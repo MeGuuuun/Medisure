@@ -36,6 +36,7 @@ def main():
         )
         switch_frame(profile_frame)
 
+
     # 프레임 생성
     login_frame = create_login_frame(
         root,
