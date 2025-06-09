@@ -53,7 +53,6 @@ def main():
         )
         switch_frame(interaction_frame)
 
-    # 프레임 생성
     login_frame = create_login_frame(
         root,
         switch_to_join=lambda: switch_frame(join_frame),
@@ -65,7 +64,6 @@ def main():
         switch_to_login=lambda: switch_frame(login_frame)
     )
 
-    # 초기 화면: 로그인
     login_frame.pack(pady=50)
 
     root.mainloop()
