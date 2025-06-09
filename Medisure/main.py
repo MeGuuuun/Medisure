@@ -2,6 +2,7 @@ import tkinter as tk
 from login_frame import create_login_frame
 from join_frame import create_join_frame
 from profile_frame import create_profile_frame
+from interaction_frame import create_interaction_frame
 
 def default_window(root, width, height):
     screen_width = root.winfo_screenwidth()
@@ -13,28 +14,44 @@ def default_window(root, width, height):
 
 def main():
     root = tk.Tk()
-    root.title("Login System")
+    root.title("Medisure")
     default_window(root, 450, 650)
 
-    profile_frame = None
+    profile_frame = login_frame = join_frame = interaction_frame = None
 
     def switch_frame(target_frame):
-        for frame in (login_frame, join_frame, profile_frame ):
+        for frame in (login_frame, join_frame, profile_frame, interaction_frame):
             if frame is not None:
                 frame.pack_forget()
         target_frame.pack(pady=50)
 
     def on_login_success(user_id):
-        nonlocal profile_frame
+        nonlocal profile_frame, login_frame
+
         if profile_frame is not None:
             profile_frame.destroy()
+
         profile_frame = create_profile_frame(
             root,
+            user_id,
             on_logout=lambda: switch_frame(login_frame),
-            switch_to_interaction=lambda: switch_frame(search_frame),
+            switch_to_interaction=lambda uid=user_id: switch_to_interaction(uid)
         )
         switch_frame(profile_frame)
 
+    def switch_to_interaction(user_id):
+        nonlocal interaction_frame, profile_frame
+
+        if interaction_frame is not None:
+            interaction_frame.destroy()
+
+        interaction_frame = create_interaction_frame(
+            root,
+            user_id,
+            on_logout=lambda: switch_frame(login_frame),
+            back_to_profile=lambda uid=user_id:on_login_success(uid)
+        )
+        switch_frame(interaction_frame)
 
     # 프레임 생성
     login_frame = create_login_frame(

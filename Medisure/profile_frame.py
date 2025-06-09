@@ -2,11 +2,8 @@ import tkinter as tk
 from tkinter import messagebox
 from openpyxl import load_workbook
 from data_fetcher import fetch_pill_info
-import app_state
 
 EXCEL_PATH = "USER_DOCS.xlsx"
-
-user_id = app_state.user_id
 
 def load_user_info(user_id):
     try:
@@ -28,7 +25,7 @@ def center_window(win):
     win.geometry(f"+{x}+{y}")
 
 # 약물 추가 함수
-def add_selected_to_excel(selected):
+def add_selected_to_excel(selected, user_id):
     try:
         wb = load_workbook(EXCEL_PATH)
     except Exception as e:
@@ -37,7 +34,6 @@ def add_selected_to_excel(selected):
     ws = wb.active
 
     id_col = 1
-    user_id = app_state.user_id
 
     pill_cols = list(range(6,10))
 
@@ -72,7 +68,7 @@ def refresh_pill_list(user_id, target_frame):
     pill_list_label.pack(pady=10)
 
     user_info = load_user_info(user_id)
-    user_pills = user_info[5:]
+    user_pills = user_info[5:11]
 
     # 약물 삭제 함수
     def delete_pill(pill_name):
@@ -117,18 +113,18 @@ def refresh_pill_list(user_id, target_frame):
                                 bg='white', fg='black', relief='solid', bd=1, padx=5, pady=1)
             del_btn.pack(side='right', padx=(5, 0))
 
-def create_profile_frame(root, on_logout, switch_to_interaction):
+def create_profile_frame(root,user_id, on_logout, switch_to_interaction):
     frame = tk.Frame(root)
     user_info = load_user_info(user_id)
 
     tk.Label(frame, text="나의 정보", font=("Arial", 16)).pack(pady=10)
 
-
     # ==== Frame 선언 ====
+    """
     top_frame = tk.Frame(frame, bg='lightblue', height=100, width=400)
     top_frame.pack(fill="x", padx=10, pady=10)
     top_frame.pack_propagate(False)  # 고정 높이 유지
-
+    """
     search_frame = tk.Frame(frame, bg='green', height=100, width=400)
     search_frame.pack(fill="x", padx=10, pady=10)
     search_frame.pack_propagate(False)
@@ -145,14 +141,15 @@ def create_profile_frame(root, on_logout, switch_to_interaction):
         info_text = "사용자 정보가 없습니다."
 
     # 라벨을 정중앙에 배치
+    """
     label = tk.Label(top_frame, text=info_text, bg='lightblue', justify="center")
     label.place(relx=0.5, rely=0.5, anchor="center")
+    """
 
     # ==== 약물 검색 =====
     tk.Label(search_frame, text="약물명 입력").pack()
     pill_entry = tk.Entry(search_frame)
     pill_entry.pack()
-
 
     def search_pill():
         pill_name = pill_entry.get().strip()
@@ -191,7 +188,7 @@ def create_profile_frame(root, on_logout, switch_to_interaction):
                 print("선택한 약물 : ", selected)
 
                 # 엑셀에 저장
-                add_selected_to_excel(selected)
+                add_selected_to_excel(selected, user_id)
 
                 refresh_pill_list(user_id, bottom_frame)
 
@@ -213,7 +210,7 @@ def create_profile_frame(root, on_logout, switch_to_interaction):
 
     # === 약물 상호작용 ====
 
-    tk.Button(bottom_frame, text="약물 상호작용 확인하기",command=switch_to_interaction)
+    tk.Button(frame, text="약물 상호작용 확인하기",command=switch_to_interaction).pack(pady=10)
 
     tk.Button(frame, text="로그아웃", command=on_logout).pack(pady=20)
 
