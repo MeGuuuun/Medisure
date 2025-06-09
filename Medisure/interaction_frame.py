@@ -65,7 +65,8 @@ def create_interaction_frame(root,user_id, on_logout, back_to_profile):
         try:
             user_info = load_user_info(user_id)
             user_pills = user_info[5:]
-            if not user_pills:
+            print(user_pills)
+            if user_pills[0] is None:
                 return {}, "등록된 약물이 없습니다."
         except Exception as e:
             print(f"⚠️ 사용자 정보 로드 실패: {e}")
