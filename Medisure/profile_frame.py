@@ -2,22 +2,27 @@ import tkinter as tk
 from tkinter import messagebox
 from openpyxl import load_workbook
 from data_fetcher import fetch_pill_info
+from PIL import Image, ImageTk
 
 EXCEL_PATH = "USER_DOCS.xlsx"
+IMAGE_PATH = "Medisure_logo.png"
 
+# 유저 정보 불러오기
 def load_user_info(user_id):
     try:
         wb = load_workbook(EXCEL_PATH)
         ws = wb.active
         for row in ws.iter_rows(min_row=2, values_only=True):
             if row[0] == user_id:
+                wb.close()
                 return row
+        wb.close()
         return None
-
     except Exception as e:
-        print("엑셀 오류: ",e)
+        print("⚠️ 엑셀 오류:", e)
         return None
 
+# 팝업 창 중앙 정렬
 def center_window(win):
     win.update_idletasks()
     x = (win.winfo_screenwidth() - win.winfo_width()) // 2
@@ -28,35 +33,37 @@ def center_window(win):
 def add_selected_to_excel(selected, user_id):
     try:
         wb = load_workbook(EXCEL_PATH)
+        ws = wb.active
+
+        id_col = 1
+        pill_cols = list(range(6, 11))
+        target_row = None
+
+        for row in range(2, ws.max_row + 1):
+            if ws.cell(row=row, column=id_col).value == user_id:
+                target_row = row
+                break
+
+        if not target_row:
+            print("⚠️ 사용자 정보를 찾을 수 없습니다.")
+            wb.close()
+            return
+
+        inserted = False
+        for col in pill_cols:
+            if not ws.cell(row=target_row, column=col).value:
+                ws.cell(row=target_row, column=col, value=selected)
+                inserted = True
+                break
+
+        if not inserted:
+            messagebox.showwarning("공간 부족", "더 이상 약물을 추가할 공간이 없습니다.")
+
+        wb.save(EXCEL_PATH)
+        wb.close()
     except Exception as e:
-        print("error")
-
-    ws = wb.active
-
-    id_col = 1
-
-    pill_cols = list(range(6,10))
-
-    target_row = None
-
-    for row in range(2, ws.max_row + 1):
-        cell_value = ws.cell(row=row, column=id_col).value
-        if cell_value == user_id:
-            target_row = row
-            break
-
-    inserted = False
-    for col in pill_cols:
-        if not ws.cell(row=target_row, column=col).value:
-            ws.cell(row=target_row, column=col, value=selected)
-            inserted = True
-            break
-
-    if not inserted:
-        print("⚠️ 더 이상 약물 정보를 추가할 공간이 없습니다.")
-
-    wb.save(EXCEL_PATH)
-
+        print("⚠️ 약물 추가 오류:", e)
+        messagebox.showerror("오류", "약물 추가 중 문제가 발생했습니다.")
 
 # 약물 정보 불러오는 함수
 def refresh_pill_list(user_id, target_frame):
@@ -72,34 +79,35 @@ def refresh_pill_list(user_id, target_frame):
 
     # 약물 삭제 함수
     def delete_pill(pill_name):
-        wb = load_workbook(EXCEL_PATH)
-        ws = wb.active
+        try:
+            wb = load_workbook(EXCEL_PATH)
+            ws = wb.active
 
-        row_index = None
-        for i, row in enumerate(ws.iter_rows(min_row=2, values_only=True),start=2):
-            if str(row[0]) == user_id:
-                row_index = i
-                break
+            row_index = None
+            for i, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+                if str(row[0]) == user_id:
+                    row_index = i
+                    break
 
-        if row_index is None:
+            if row_index is None:
+                wb.close()
+                messagebox.showerror("삭제 오류", "사용자 정보를 찾을 수 없습니다.")
+                return
+
+            pills = [ws.cell(row=row_index, column=col).value for col in range(6, 11)]
+            pills = [pill for pill in pills if pill != pill_name]
+            pills += [None] * (5 - len(pills))  # None으로 채워 5개 유지
+
+            for idx, pill in enumerate(pills):
+                ws.cell(row=row_index, column=6 + idx).value = pill
+
+            wb.save(EXCEL_PATH)
             wb.close()
-            print("error")
-            return
 
-        pills = [ws.cell(row=row_index, column=col).value for col in range(6,11)]
-
-        # 삭제할 약 제거하고 순서 당기기
-        pills = [pill for pill in pills if pill != pill_name]
-        while len(pills) < 5 :
-            pills.append(None)
-
-        for idx, pill in enumerate(pills):
-            ws.cell(row=row_index, column=5 + idx).value = pill
-
-        wb.save(EXCEL_PATH)
-        wb.close()
-
-        refresh_pill_list(user_id, target_frame)
+            refresh_pill_list(user_id, target_frame)
+        except Exception as e:
+            print("⚠️ 약물 삭제 중 오류:", e)
+            messagebox.showerror("오류", "약물 삭제 중 문제가 발생했습니다.")
 
     for pill in user_pills:
         if pill:
@@ -113,43 +121,41 @@ def refresh_pill_list(user_id, target_frame):
                                 bg='white', fg='black', relief='solid', bd=1, padx=5, pady=1)
             del_btn.pack(side='right', padx=(5, 0))
 
+# profile 프레임 생성
 def create_profile_frame(root,user_id, on_logout, switch_to_interaction):
     frame = tk.Frame(root)
-    user_info = load_user_info(user_id)
-
-    tk.Label(frame, text="나의 정보", font=("Arial", 16)).pack(pady=10)
 
     # ==== Frame 선언 ====
-    """
-    top_frame = tk.Frame(frame, bg='lightblue', height=100, width=400)
-    top_frame.pack(fill="x", padx=10, pady=10)
-    top_frame.pack_propagate(False)  # 고정 높이 유지
-    """
-    search_frame = tk.Frame(frame, bg='green', height=100, width=400)
+    logo_frame = tk.Frame(frame, height=150, width=150)
+    logo_frame.pack(fill="x", pady=(30, 10))
+    logo_frame.pack_propagate(False)
+
+    logo_img_raw = Image.open(IMAGE_PATH)
+    logo_img_resized = logo_img_raw.resize((150, 150), Image.Resampling.LANCZOS)
+    logo_img = ImageTk.PhotoImage(logo_img_resized)
+
+    logo_label = tk.Label(logo_frame, image=logo_img)
+    logo_label.image = logo_img
+    logo_label.pack()
+
+    tk.Label(frame, text="나의 약 관리", font=("Arial", 16)).pack(pady=10)
+
+    search_frame = tk.Frame(frame)
     search_frame.pack(fill="x", padx=10, pady=10)
-    search_frame.pack_propagate(False)
 
-    bottom_frame = tk.Frame(frame, bg='yellow', height=300, width=400)
-    bottom_frame.pack(fill="x", padx=10, pady=10)
-    bottom_frame.pack_propagate(False)
-
-    # ==== 사용자 정보 ====
-    # user_info가 있는 경우 줄바꿈 포함한 문자열 생성
-    if user_info:
-        info_text = "\n".join(str(item) for item in user_info[:5])
-    else:
-        info_text = "사용자 정보가 없습니다."
-
-    # 라벨을 정중앙에 배치
-    """
-    label = tk.Label(top_frame, text=info_text, bg='lightblue', justify="center")
-    label.place(relx=0.5, rely=0.5, anchor="center")
-    """
+    bottom_frame = tk.Frame(frame)
+    bottom_frame.pack(fill="both", expand=True, padx=10, pady=10)
+    refresh_pill_list(user_id, bottom_frame)
 
     # ==== 약물 검색 =====
-    tk.Label(search_frame, text="약물명 입력").pack()
-    pill_entry = tk.Entry(search_frame)
-    pill_entry.pack()
+    tk.Label(search_frame, text="약물명 입력", font=("Arial", 12)).pack()
+
+    entry_btn_frame = tk.Frame(search_frame)
+    entry_btn_frame.pack(pady=5)
+    entry_btn_frame.pack_configure(padx=20)  # 좌우 20픽셀 여백 예시
+
+    pill_entry = tk.Entry(entry_btn_frame, font=("Arial", 12), width=25, fg='grey', bg='lightgrey')
+    pill_entry.pack(side="left")
 
     def search_pill():
         pill_name = pill_entry.get().strip()
@@ -157,12 +163,16 @@ def create_profile_frame(root,user_id, on_logout, switch_to_interaction):
             messagebox.showwarning("입력 오류", "약물명을 입력하세요.")
             return
 
-        results = fetch_pill_info(pill_name)
-        if results:
-            print("🔍 검색 결과:")
-            print(results)
-        else:
-            print("❌ 검색 실패 또는 결과 없음")
+        try:
+            results = fetch_pill_info(pill_name)
+        except Exception as e:
+            print("⚠️ 약물 검색 오류:", e)
+            messagebox.showerror("검색 오류", "약물 정보를 불러오는 중 오류가 발생했습니다.")
+            return
+
+        if not results:
+            messagebox.showinfo("검색 결과 없음", f"'{pill_name}'에 대한 검색 결과가 없습니다.")
+            return
 
         # 검색 결과 팝업 창 생성
         popup = tk.Toplevel(search_frame)
@@ -170,7 +180,6 @@ def create_profile_frame(root,user_id, on_logout, switch_to_interaction):
         popup.resizable(False, False)
         popup.transient(search_frame)
         popup.grab_set()
-
         center_window(popup)
 
         scrollbar = tk.Scrollbar(popup)
@@ -185,24 +194,24 @@ def create_profile_frame(root,user_id, on_logout, switch_to_interaction):
         def on_select(event):
             if listbox.curselection():
                 selected = listbox.get(listbox.curselection())
-                print("선택한 약물 : ", selected)
+                try:
+                    add_selected_to_excel(selected, user_id)
+                    refresh_pill_list(user_id, bottom_frame)
+                except Exception as e:
+                    print("⚠️ 선택 후 오류:", e)
+                    messagebox.showerror("오류", "약물을 추가하는 도중 문제가 발생했습니다.")
+                    popup.destroy()
+                    return
 
-                # 엑셀에 저장
-                add_selected_to_excel(selected, user_id)
-
-                refresh_pill_list(user_id, bottom_frame)
-
-                # 배경색 바꾸기 (선택된 항목만)
                 index = listbox.curselection()[0]
                 listbox.itemconfig(index, bg="lightgray")
-
-                # 0.5초 딜레이 후 팝업 닫기
                 popup.after(500, popup.destroy)
 
         listbox.bind("<<ListboxSelect>>", on_select)
 
-    tk.Button(search_frame, text="약물 검색 (콘솔 출력)", command=lambda:search_pill()).pack(pady=10)
 
+    search_btn = tk.Button(entry_btn_frame, text="약물 검색", font=("Arial", 12), command=search_pill)
+    search_btn.pack(side="left", padx=(15, 0))
 
     # ==== 약물 정보 ====
 
@@ -210,8 +219,10 @@ def create_profile_frame(root,user_id, on_logout, switch_to_interaction):
 
     # === 약물 상호작용 ====
 
-    tk.Button(frame, text="약물 상호작용 확인하기",command=switch_to_interaction).pack(pady=10)
+    action_frame = tk.Frame(frame)
+    action_frame.pack(pady=20)
 
-    tk.Button(frame, text="로그아웃", command=on_logout).pack(pady=20)
+    tk.Button(action_frame, text="약물 상호작용 확인하기", font=("Arial", 12), command=switch_to_interaction).pack(pady=5)
+    tk.Button(action_frame, text="로그아웃", font=("Arial", 12), command=on_logout).pack(pady=5)
 
     return frame
